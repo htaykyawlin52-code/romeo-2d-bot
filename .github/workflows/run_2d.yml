@@ -1,0 +1,27 @@
+name: Run 2D Scraper
+
+on:
+  schedule:
+    - cron: '30 4 * * *'  # မြန်မာစံတော်ချိန် ၁၁:၀၀ နာရီ (11:00 AM)
+    - cron: '01 5 * * *'  # မြန်မာစံတော်ချိန် ၁၂:၃၁ နာရီ (12:01 PM)
+    - cron: '30 8 * * *'  # မြန်မာစံတော်ချိန် ၃:၀၀ နာရီ (3:00 PM)
+    - cron: '00 10 * * *' # မြန်မာစံတော်ချိန် ၄:၃၀ နာရီ (4:30 PM)
+  workflow_dispatch:      # လက်ဖြင့် နှိပ်၍ စမ်းသပ်နိုင်ရန်
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install requests supabase
+      - name: Run Scraper
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python scrape_2d.py
