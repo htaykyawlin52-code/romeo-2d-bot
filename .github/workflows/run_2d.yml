@@ -2,21 +2,21 @@ name: Run 2D Scraper
 
 on:
   schedule:
-    - cron: '30 4 * * *'   # မြန်မာစံတော်ချိန် ၁၁:၀၀ နာရီ
-    - cron: '01 5 * * *'   # မြန်မာစံတော်ချိန် ၁၂:၃၁ နာရီ
-    - cron: '30 8 * * *'   # မြန်မာစံတော်ချိန် ၃:၀၀ နာရီ
-    - cron: '00 10 * * *'  # မြန်မာစံတော်ချိန် ၄:၃၀ နာရီ
-  workflow_dispatch:       # လက်ဖြင့် နှိပ်၍ စမ်းသပ်နိုင်ရန်
+    - cron: '30 4 * * *'
+    - cron: '01 5 * * *'
+    - cron: '30 8 * * *'
+    - cron: '00 10 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
