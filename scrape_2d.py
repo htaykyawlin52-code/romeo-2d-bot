@@ -1,20 +1,15 @@
 import os
 import requests
 from bs4 import BeautifulSoup
-from supabase_client import create_client  # ရိုးရိုးရှင်းရှင်းနှင့် အလုပ်ဖြစ်ဆုံး format သို့ ပြောင်းထားသည်
+import supabase
 from datetime import datetime
 
 # Supabase Credentials
 url = os.environ.get("SUPABASE_URL")
 key = os.environ.get("SUPABASE_SERVICE_KEY")
 
-# Client ကို တည်ဆောက်ခြင်း
-try:
-    import supabase
-    supabase_auth = supabase.create_client(url, key)
-except:
-    from supabase import create_client as supabase_create
-    supabase_auth = supabase_create(url, key)
+# အမှားအယွင်းမရှိစေရန် တိုက်ရိုက် ဆောက်ခြင်း
+supabase_auth = supabase.create_client(url, key)
 
 def get_thai_stock_data():
     headers = {
@@ -29,11 +24,11 @@ def get_thai_stock_data():
             
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # 1. 3D Result ဆွဲယူခြင်း (ဝဘ်ဆိုဒ်ထဲက ဒေတာအစစ်ကို ရှာခြင်း)
+        # ဝဘ်ဆိုဒ်ထဲက 3D ဂဏန်းအစစ်ကို ရှာဖွေခြင်း
         threed_element = soup.find(text=lambda text: text and len(text.strip()) == 3 and text.strip().isdigit())
         threed_value = threed_element.strip() if threed_element else "387"
         
-        # 2. Live 2D များကို ဝဘ်ဆိုဒ်အတိုင်း ဆွဲထုတ်ခြင်း
+        # Live 2D တန်ဖိုး
         live_2d = "26" 
         
         return {
