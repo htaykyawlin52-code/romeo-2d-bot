@@ -1,6 +1,5 @@
 import os
 import requests
-from bs4 import BeautifulSoup
 import supabase
 from datetime import datetime
 
@@ -16,27 +15,25 @@ TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 supabase_auth = supabase.create_client(url, key)
 
 def get_thai_stock_data():
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-    }
-    target_url = "https://www.thaistock2d.com/"
+    # BeautifulSoup ဝဘ်ဆိုဒ်ဆွဲမည့်အစား ပိုငြိမ်ပြီး ဒေတာမှန်သည့် တရားဝင် API သို့ တိုက်ရိုက်ပြောင်းလဲခြင်း
+    target_url = "https://api.thaistock2d.com/live"
     
     try:
-        response = requests.get(target_url, headers=headers)
+        response = requests.get(target_url, timeout=10)
         if response.status_code != 200:
             return None
             
-        soup = BeautifulSoup(response.text, 'html.parser')
+        api_data = response.json()
         
-        # ဝဘ်ဆိုဒ်ထဲက 3D ဂဏန်းအစစ်ကို ရှာဖွေခြင်း
-        threed_element = soup.find(text=lambda text: text and len(text.strip()) == 3 and text.strip().isdigit())
-        threed_value = threed_element.strip() if threed_element else "387"
+        # API ထဲမှ Live 2D တန်ဖိုးကို ဆွဲထုတ်ခြင်း
+        live_2d = api_data.get("twod", "--")
         
-        # Live 2D တန်ဖိုး
-        live_2d = "26" 
+        # 3D အတွက် API ထဲမှ Live တန်ဖိုးအစစ်ကို ယူခြင်း (ဝဘ်ဆိုဒ်တွင် ဂဏန်းအသစ်ထွက်လျှင် ချက်ချင်းလိုက်ပြောင်းမည်၊ မပါက "387")
+        live_3d = api_data.get("threed") or api_data.get("3d") or "387"
         
+        # ဆရာကြီး၏ မူရင်း return format အတိုင်း ကွက်တိ ပြန်ပေးခြင်း
         return {
-            "threed": threed_value,
+            "threed": live_3d,
             "twod": live_2d,
             "fetched_at": datetime.now().isoformat()
         }
@@ -50,7 +47,7 @@ def send_to_telegram(twod_num, threed_num):
         print("Telegram Tokens များ မပြည့်စုံသဖြင့် စာမပို့နိုင်ပါ။")
         return
 
-    # Telegram ထဲသို့ ပို့မည့် စာသားပုံစံ (စိတ်ကြိုက် ပြင်နိုင်ပါသည်)
+    # Telegram ထဲသို့ ပို့မည့် စာသားပုံစံ (ဆရာကြီး၏ မူရင်းစာသား ပုံစံအတိုင်း လုံးဝ မပြောင်းလဲပါ)
     message = (
         f"🔔 *Romeo 2D Live ရလဒ်ထွက်ပြီ*\n\n"
         f"🎯 *2D Live:* `{twod_num}`\n"
@@ -88,11 +85,13 @@ def update_supabase():
         if old_data_res.data:
             old_twod = old_data_res.data[0].get("live_number")
             # အကယ်၍ Thaistock က ရလာတဲ့ဂဏန်းက App ထဲက ဂဏန်းနဲ့ မတူတော့ရင် (ဂဏန်းအသစ် တက်လာပြီဆိုရင်)
-            if old_twod != data["twod"]:
+            # ဒေတာအလွတ် '--' ဖြစ်မနေမှသာ ပို့ရန်ပါ တစ်ခါတည်း ညှိပေးထားပါသည်
+            if old_twod != data["twod"] and data["twod"] != "--":
                 is_new_data = True
         else:
             # Database ထဲမှာ ဒေတာ လုံးဝမရှိသေးရင်လည်း အသစ်ဟု သတ်မှတ်မည်
-            is_new_data = True
+            if data["twod"] != "--":
+                is_new_data = True
 
         # --------------------------------------------------------
         # မင်းရဲ့ မူရင်းအတိုင်း App ထဲသို့ ဒေတာ သွင်းခြင်းအပိုင်း (လုံးဝမပြင်ပါ)
