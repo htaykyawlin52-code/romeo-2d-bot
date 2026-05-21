@@ -2,10 +2,17 @@ name: Run 2D Scraper
 
 on:
   schedule:
-    - cron: '30 4 * * *'
-    - cron: '01 5 * * *'
-    - cron: '30 8 * * *'
-    - cron: '00 10 * * *'
+    # 1. မနက် ၁၁:၀၀ ထွက်ဂဏန်းအတွက် -> မြန်မာစံတော်ချိန် ၁၁:၀၄ AM တွင် Run မည်
+    - cron: '34 4 * * *'
+    
+    # 2. မနက် ၁၂:၀၁ ထွက်ဂဏန်းအတွက် -> မြန်မာစံတော်ချိန် ၁၂:၀၅ PM တွင် Run မည်
+    - cron: '35 5 * * *'
+    
+    # 3. ညနေ ၃:၀၀ ထွက်ဂဏန်းအတွက် -> မြန်မာစံတော်ချိန် ၃:၀၄ PM တွင် Run မည်
+    - cron: '34 8 * * *'
+    
+    # 4. ညနေ ၄:၃၀ ထွက်ဂဏန်းအတွက် -> မြန်မာစံတော်ချိန် ၄:၃၄ PM တွင် Run မည်
+    - cron: '04 10 * * *'
   workflow_dispatch:
 
 jobs:
@@ -21,7 +28,7 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install requests supabase beautifulsoup4
+        run: pip install requests supabase
 
       - name: Run Scraper
         env:
