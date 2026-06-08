@@ -197,4 +197,34 @@ def save_live_and_internet_results():
             if isinstance(roy_json, list):
                 for item in roy_json:
                     if item.get("time") == session:
-                        modern_val = item.get("
+                        modern_val = item.get("twod") or item.get("result") or ""
+            elif isinstance(roy_json, dict):
+                modern_val = roy_json.get("twod") or ""
+
+        supabase.table("internet_modern_results").upsert({
+            "result_date": today_str,
+            "session_time": session,
+            "internet_twod": str(internet_val),
+            "modern_twod": str(modern_val)
+        }, on_conflict="result_date,session_time").execute()
+        print("🌐 Internet & Modern 2D ရလဒ်များ ညှိနှိုင်းသိမ်းဆည်းပြီးပါပြီ။")
+        
+    except Exception as e:
+        print(f"⚠️ Internet/Modern 2D ဆွဲယူရာတွင် အမှားရှိသည်: {e}")
+
+def main():
+    print("🤖 --- Romeo 2D Engine စတင်မောင်းနှင်နေပါပြီ ---")
+    
+    is_holiday = check_and_save_holidays()
+    if is_holiday:
+        print("❌ [🛑 STOP] ယနေ့သည် ထိုင်းစတော့ဈေးကွက် ပိတ်ရက် (Holiday) ဖြစ်နေပါသည်။")
+        print("💡 ဒေတာဘေ့စ် ကြောင်မသွားစေရန် ဒေတာအသစ်ဆွဲခြင်းလုပ်ငန်းစဉ်အားလုံးကို အလိုအလျောက် ရပ်နား (Skip) လိုက်ပါပြီ ဆရာ။")
+        return
+        
+    print("✅ ရုံးဖွင့်ရက်ဖြစ်၍ Htay API မှ Features အသစ်များ စတင်ရယူနေပါသည်...")
+    save_vip_numbers()
+    save_live_and_internet_results()
+    print("🎉 --- လုပ်ငန်းစဉ်အားလုံး အောင်မြင်စွာ ပြီးဆုံးပါပြီ ဆရာ ---")
+
+if __name__ == "__main__":
+    main()
