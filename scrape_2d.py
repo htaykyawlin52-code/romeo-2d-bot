@@ -11,24 +11,40 @@ key = os.environ.get("SUPABASE_SERVICE_KEY")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+# Htay API Key (GitHub Secrets မှ လှမ်းယူခြင်း)
+API_KEY = os.environ.get("API_KEY")
+
 # Client ဆောက်ခြင်း
 supabase_auth = supabase.create_client(url, key)
 
 def get_thai_stock_data():
-    target_url = "https://api.thaistock2d.com/live"
+    # Htay API ရဲ့ 2D Live ဒေတာယူမည့် URL လိပ်စာအသစ်
+    target_url = "https://htayapi.com/twod/thai/2dlive"
+    
+    if not API_KEY:
+        print("Error: API_KEY ကို GitHub Secrets တွင် ရှာမတွေ့ပါ။")
+        return None
+
+    # Htay API သတ်မှတ်ချက်အရ Header ထဲတွင် သော့အချုပ်ကို ထည့်သွင်းခြင်း
+    headers = {
+        "X-HTAYAPI-KEY": API_KEY
+    }
+    
     try:
-        # Timeout တိုးပေးထားသည် (API နှေးလျှင် Error မတက်အောင်)
-        response = requests.get(target_url, timeout=20)
+        response = requests.get(target_url, headers=headers, timeout=20)
         if response.status_code != 200:
+            print(f"API Error Status Code: {response.status_code}")
             return None
         
-        # API Response ကို စစ်ဆေးခြင်း
         api_data = response.json()
         if not api_data:
             return None
             
-        # ဒေတာများ ဆွဲထုတ်ခြင်း
-        live_2d = api_data.get("twod", "--")
+        # Htay API ရဲ့ JSON ပုံစံအတိုင်း ဒေတာများ ဆွဲထုတ်ခြင်း
+        # Htay API တွင် live_2d အတွက် 'twod_value' သို့မဟုတ် 'twod' ကို သုံးလေ့ရှိသည်
+        live_2d = api_data.get("twod_value") or api_data.get("twod") or "--"
+        
+        # 3D အတွက် ဒေတာ (မပါလာပါက default အဟောင်းအတိုင်း ထားသည်)
         live_3d = api_data.get("threed") or api_data.get("3d") or "387"
         
         return {
